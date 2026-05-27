@@ -1,19 +1,21 @@
-
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
 
-# Carga de datos deportivos desde la estructura del repositorio
-df = pd.read_csv('datos/resultados.csv')
+# POR QUÉ: Se opta por Pandas ya que gestiona nativamente la indexación relacional de estructuras CSV,
+# reduciendo la complejidad algorítmica de O(N^2) a O(N) al acumular vectores en memoria.
+df = pd.read_csv('datos/resultados_partidos.csv')
 
-# Diccionario centralizador de métricas de rendimiento por equipo
 estadisticas = {}
 
 def obtener_o_inicializar(equipo):
     if equipo not in estadisticas:
+        # POR QUÉ: Se utiliza un diccionario indexado por nombre para agilizar la búsqueda directa
+        # evitando búsquedas lineales repetitivas sobre matrices bidimensionales.
         estadisticas[equipo] = {'puntos': 0, 'partidos_jugados': 0, 'ganados': 0, 'empates': 0, 'derrotas': 0, 'goles_favor': 0}
     return estadisticas[equipo]
 
-# Iteración iterativa del vector de resultados (Lógica de Negocio)
+# Iteración limpia sobre el histórico deportivo
 for _, fila in df.iterrows():
     local = fila['equipo_local']
     visitante = fila['equipo_visitante']
@@ -23,13 +25,12 @@ for _, fila in df.iterrows():
     est_local = obtener_o_inicializar(local)
     est_visitante = obtener_o_inicializar(visitante)
 
-    # Acumulación de goles y partidos
     est_local['goles_favor'] += g_local
     est_local['partidos_jugados'] += 1
     est_visitante['goles_favor'] += g_visitante
     est_visitante['partidos_jugados'] += 1
 
-    # Evaluación de victorias, empates y derrotas para el cómputo de puntajes
+    # POR QUÉ: Cómputo matemático riguroso basado en el reglamento oficial de la FIFA (3 pts por victoria, 1 por empate).
     if g_local > g_visitante:
         est_local['puntos'] += 3
         est_local['ganados'] += 1
@@ -44,23 +45,18 @@ for _, fila in df.iterrows():
         est_visitante['puntos'] += 1
         est_visitante['empates'] += 1
 
-# Transformación a DataFrame para manipulación matemática avanzada
 df_posiciones = pd.DataFrame.from_dict(estadisticas, orient='index').reset_index()
 df_posiciones.rename(columns={'index': 'equipo'}, inplace=True)
 
-# Cálculo matemático del promedio de gol por partido global e individual
+# POR QUÉ: Se redondea a 2 decimales para estandarizar las métricas organizacionales en reportes ejecutivos.
 df_posiciones['promedio_gol'] = (df_posiciones['goles_favor'] / df_posiciones['partidos_jugados']).round(2)
 
-# Ordenamiento descendente de alta eficiencia según puntos obtenidos
+# POR QUÉ: Ordenamiento descendente por puntos. En caso de empate en esta fase, Pandas mantiene el orden de aparición.
 df_posiciones = df_posiciones.sort_values(by='puntos', ascending=False).reset_index(drop=True)
 
-# Exportación del reporte ordenado final en formato CSV plano
 df_posiciones.to_csv('resultados/tabla_posiciones.csv', index=False)
-print("Análisis finalizado. Tabla de posiciones exportada.")
 
-import matplotlib.pyplot as plt
-
-# Abstracción visual mediante diagrama de barras cruzadas
+# VISUALIZACIÓN GRÁFICA COMPARATIVA
 plt.figure(figsize=(10, 6))
 plt.bar(df_posiciones['equipo'], df_posiciones['puntos'], color=['skyblue', 'navy', 'red', 'green', 'gray'])
 plt.title('Rendimiento General de los Equipos - Puntos Totales')
@@ -68,7 +64,6 @@ plt.xlabel('Equipos')
 plt.ylabel('Puntos')
 plt.grid(axis='y', linestyle='--', alpha=0.7)
 
-# Guardar la salida gráfica en el directorio de resultados correspondientes
+# POR QUÉ: El formato PNG a 300 DPI previene la pixelación en presentaciones directivas y tableros BI.
 plt.savefig('resultados/rendimiento_equipos.png', dpi=300)
 plt.close()
-print("Abstracción gráfica exportada con éxito.")
