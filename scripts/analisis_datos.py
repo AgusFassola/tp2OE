@@ -57,3 +57,18 @@ df_posiciones = df_posiciones.sort_values(by='puntos', ascending=False).reset_in
 # Exportación del reporte ordenado final en formato CSV plano
 df_posiciones.to_csv('resultados/tabla_posiciones.csv', index=False)
 print("Análisis finalizado. Tabla de posiciones exportada.")
+
+import matplotlib.pyplot as plt
+
+# Abstracción visual mediante diagrama de barras cruzadas
+plt.figure(figsize=(10, 6))
+plt.bar(df_posiciones['equipo'], df_posiciones['puntos'], color=['skyblue', 'navy', 'red', 'green', 'gray'])
+plt.title('Rendimiento General de los Equipos - Puntos Totales')
+plt.xlabel('Equipos')
+plt.ylabel('Puntos')
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+# Guardar la salida gráfica en el directorio de resultados correspondientes
+plt.savefig('resultados/rendimiento_equipos.png', dpi=300)
+plt.close()
+print("Abstracción gráfica exportada con éxito.")
